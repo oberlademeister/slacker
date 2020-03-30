@@ -2,15 +2,11 @@ package slacker
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
-// SlackSender can be used as a Reader that the
-type SlackSender struct {
+// SendBuffer can be used as a Reader that the
+type SendBuffer struct {
 	webhookURL      string
 	useFlushString  bool
 	flushString     string
@@ -20,9 +16,9 @@ type SlackSender struct {
 	client          *http.Client
 }
 
-// NewSlackSender creates a new SlackSender
-func NewSlackSender(webhookURL string, opts ...SlackSenderOption) *SlackSender {
-	ss := &SlackSender{webhookURL: webhookURL, client: &http.Client{}}
+// NewSendBuffer creates a new SlackSender
+func NewSendBuffer(webhookURL string, opts ...SBOption) *SendBuffer {
+	ss := &SendBuffer{webhookURL: webhookURL, client: &http.Client{}}
 	for _, opt := range opts {
 		opt(ss)
 	}
@@ -30,7 +26,7 @@ func NewSlackSender(webhookURL string, opts ...SlackSenderOption) *SlackSender {
 }
 
 // Write fulfills io.Writer
-func (ss *SlackSender) Write(p []byte) (n int, err error) {
+func (ss *SendBuffer) Write(p []byte) (n int, err error) {
 	if ss.alwaysFlush {
 		n, err := ss.buffer.Write(p)
 		if err != nil {
@@ -54,30 +50,6 @@ func (ss *SlackSender) Write(p []byte) (n int, err error) {
 }
 
 // Flush sends the buffer contents to slack
-func (ss *SlackSender) Flush() error {
-	bodyStruct := struct {
-		Text string `json:"text"`
-	}{
-		Text: ss.buffer.String(),
-	}
-	body, err := json.Marshal(&bodyStruct)
-	if err != nil {
-		return errors.Wrap(err, "can't marshal body")
-	}
-	r := bytes.NewReader(body)
-	req, err := http.NewRequest("POST", ss.webhookURL, r)
-	if err != nil {
-		return errors.Wrap(err, "failed to create POST request")
-	}
-	req.Header.Set("Content-type", "application/json")
-	fmt.Println(req)
-	res, err := ss.client.Do(req)
-	if err != nil {
-		return errors.Wrap(err, "failed to send http request")
-	}
-	if res.StatusCode != 200 {
-		return fmt.Errorf("http response status %d (), not 200", res.StatusCode, res.Status)
-	}
-	return nil
-
+func (ss *SendBuffer) Flush() error {
+	return Send(ss.webhookURL, ss.buffer.String(), ss.client)
 }

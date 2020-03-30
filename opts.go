@@ -1,18 +1,18 @@
 package slacker
 
-// SlackSenderOption is an option function to parametrize SlackSender
-type SlackSenderOption func(*SlackSender)
+// SBOption is an option function to parametrize SlackSender
+type SBOption func(*SendBuffer)
 
 // SetOpts allows to set options
-func (ss *SlackSender) SetOpts(opts ...SlackSenderOption) {
+func (ss *SendBuffer) SetOpts(opts ...SBOption) {
 	for _, opt := range opts {
 		opt(ss)
 	}
 }
 
 // FlushString sets the flushstring to s
-func FlushString(s string) func(ss *SlackSender) {
-	return func(ss *SlackSender) {
+func FlushString(s string) func(ss *SendBuffer) {
+	return func(ss *SendBuffer) {
 		ss.useFlushString = true
 		ss.hideFlushString = true
 		ss.flushString = s
@@ -20,15 +20,15 @@ func FlushString(s string) func(ss *SlackSender) {
 }
 
 // SetHideFlushString sets the hideflush string property
-func SetHideFlushString(b bool) func(ss *SlackSender) {
-	return func(ss *SlackSender) {
+func SetHideFlushString(b bool) func(ss *SendBuffer) {
+	return func(ss *SendBuffer) {
 		ss.hideFlushString = b
 	}
 }
 
 // AlwaysFlush sets the alwaysflush bool property
-func AlwaysFlush(b bool) func(ss *SlackSender) {
-	return func(ss *SlackSender) {
+func AlwaysFlush(b bool) func(ss *SendBuffer) {
+	return func(ss *SendBuffer) {
 		ss.alwaysFlush = b
 	}
 }
