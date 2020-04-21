@@ -34,7 +34,7 @@ func Send(webhookURL string, message string, client *http.Client) error {
 		return errors.Wrap(err, "failed to send http request")
 	}
 	if res.StatusCode != 200 {
-		return fmt.Errorf("http response status %d (), not 200", res.StatusCode, res.Status)
+		return fmt.Errorf("http response status %d (%s), not 200", res.StatusCode, res.Status)
 	}
 	return nil
 }
